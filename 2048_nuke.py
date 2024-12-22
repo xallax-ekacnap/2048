@@ -12,6 +12,8 @@ def add_new_value(board, r=None):
             if item == 0:
                 spots.append((i, j))
     if len(spots) == 0:
+        if is_game_over():
+            game_over()
         return board
     index = random.choice(spots)
     if random.randint(0, 9) == 0:
@@ -42,27 +44,28 @@ def move_board_right(board):
         board[i] = move_row_left(row[::-1])[::-1]
     return board
 
-def move_board_up(board):
+
+def rotate_board(board):
     new_board = [[0 for _ in range(len(board[0]))] for _ in range(len(board))]
     for i in range(len(board)):
         for j in range(len(board[0])):
             new_board[i][j] = board[j][i]
-    new_board = move_board_left(new_board)
+    return new_board
+
+def unrotate_board(board):
+    new_board = [[0 for _ in range(len(board[0]))] for _ in range(len(board))]
     for i in range(len(board)):
         for j in range(len(board[0])):
-            board[j][i] = new_board[i][j]
-    return board
+            new_board[j][i] = board[i][j]
+    return new_board
+
+
+def move_board_up(board):
+    return unrotate_board(move_board_left(rotate_board(board)))
 
 def move_board_down(board):
-    new_board = [[0 for _ in range(len(board[0]))] for _ in range(len(board))]
-    for i in range(len(board)):
-        for j in range(len(board[0])):
-            new_board[i][j] = board[j][i]
-    new_board = move_board_right(new_board)
-    for i in range(len(board)):
-        for j in range(len(board[0])):
-            board[j][i] = new_board[i][j]
-    return board
+    return unrotate_board(move_board_right(rotate_board(board)))
+
 def check_pair(a, b):
     if a == b and not a.combined and not b.combined and a != 0: #combining
         new_value = a * 2
@@ -94,7 +97,6 @@ class Cell(int):
         return f"{self.value}"
 
 def decide_direction(name):
-    print("before movement")
     # display(st.session_state.board)
     
     if name == 'Left':
@@ -106,17 +108,45 @@ def decide_direction(name):
     if name == 'Down':
         st.session_state.board = move_board_down(st.session_state.board)
     
-    print("after movement")
     # display(st.session_state.board)
     st.session_state.board = add_new_value(st.session_state.board)
-    
-    print("after adding new value")
     # display(st.session_state.board)
 
 def reinitialize_board():
     board = [[Cell(0) for i in range(st.session_state.edge)] for j in range(st.session_state.edge)]
     board = add_new_value(board)
+    st.session_state.score = 0
     st.session_state.board = board
+
+def is_game_over():
+    print("is game over")
+    print(st.session_state.board)
+    print(rotate_board(st.session_state.board))
+    for row in st.session_state.board:
+        for i, val in enumerate(row[1:], 1):
+            print(i, val, row[i-1])
+            if val == row[i - 1]:
+                print("false1")
+                return False
+    
+    for row in rotate_board(st.session_state.board):
+        for i, val in enumerate(row[1:], 1):
+            if val == row[i - 1]:
+                print("fals2")
+                return False
+    print("true")
+    return True
+
+            
+
+def game_over():
+    print("game over")
+    game_over = st.sidebar.container(border=False)
+    with game_over:
+        st.markdown("<h1 style='text-align: center;'>Game Over</h1>", unsafe_allow_html=True)
+        st.button("Restart", on_click=reinitialize_board)
+    del game_over
+
 
 
 # board = [[Cell(0) for i in range(4)] for j in range(4)]
@@ -144,7 +174,7 @@ with st.sidebar:
 
     st.markdown(f"<h1 style='text-align: center;'>Score: {st.session_state.score}</h1>", unsafe_allow_html=True)
 
-    st.number_input(label="Edge", key="edge", value=4, min_value=2, max_value=16, step=1, on_change=reinitialize_board)
+    st.number_input(label="Edge", key="edge", value=4, min_value=3, max_value=16, step=1, on_change=reinitialize_board)
 
 for i, col in enumerate([col1, col2, col3, col4]):
     with col:

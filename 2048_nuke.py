@@ -113,10 +113,13 @@ def decide_direction(name):
     print("after adding new value")
     # display(st.session_state.board)
 
+def reinitialize_board():
+    board = [[Cell(0) for i in range(st.session_state.edge)] for j in range(st.session_state.edge)]
+    board = add_new_value(board)
+    st.session_state.board = board
+
 
 # board = [[Cell(0) for i in range(4)] for j in range(4)]
-
-edge_num = 4
 
 
 board_cont = st.container(border=False)
@@ -140,6 +143,8 @@ arrows = ['←', '→', '↑','↓']
 with st.sidebar:
 
     st.markdown(f"<h1 style='text-align: center;'>Score: {st.session_state.score}</h1>", unsafe_allow_html=True)
+
+    st.number_input(label="Edge", key="edge", value=4, min_value=2, max_value=16, step=1, on_change=reinitialize_board)
 
 for i, col in enumerate([col1, col2, col3, col4]):
     with col:
@@ -172,32 +177,20 @@ colors = {
 
 
 if "board" not in st.session_state:
-    board = [[Cell(0) for i in range(edge_num)] for j in range(edge_num)]
-    board = add_new_value(board)
-    st.session_state.board = board
+    reinitialize_board()
 
-cols = board_cont.columns(edge_num, gap="small")
-# for i, col in enumerate(cols):
-#     with col:
-#         for j in range(4):
-#             var = st.session_state.board[j][i]
-#             with stylable_container(
-#                 key="box",
-#                 css_styles=" {background-color: grey; max-width: 100px;}"
-#                 ):
-#                 box = st.container(height=100,border=True)
-            
-#             box.write(f'<span style="color: {colors[var]}; font-size: 2em;">{str(var)}</span>', unsafe_allow_html=True)
+cols = board_cont.columns(st.session_state.edge, gap="small")
+
 for i, col in enumerate(cols):
     with col:
-        for j in range(edge_num):
+        for j in range(st.session_state.edge):
             var = st.session_state.board[j][i]
             color = colors[var]
             st.write(
                 f"""
                 <div style="
-                    height: {680 / edge_num}px; 
-                    width: {680 / edge_num}px; 
+                    height: {680 / st.session_state.edge}px; 
+                    width: {680 / st.session_state.edge}px; 
                     background-color: {color}; 
                     display: flex; 
                     align-items: center; 

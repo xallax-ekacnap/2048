@@ -78,13 +78,6 @@ def check_pair(a, b):
     return a, b
             
 
-# def display(board):
-#     for i in range(4):
-#         for j in range(4):
-#             print(board[i][j], end=' ')
-#         print()
-#     print()
-
 class Cell(int):
     def __new__(cls, value, *args, **kwargs):
         # Ensure the value is converted to an integer
@@ -124,22 +117,15 @@ def reinitialize_board():
     st.session_state.board = board
 
 def is_game_over():
-    print("is game over")
-    print(st.session_state.board)
-    print(rotate_board(st.session_state.board))
     for row in st.session_state.board:
         for i, val in enumerate(row[1:], 1):
-            print(i, val, row[i-1])
             if val == row[i - 1]:
-                print("false1")
                 return False
     
     for row in rotate_board(st.session_state.board):
         for i, val in enumerate(row[1:], 1):
             if val == row[i - 1]:
-                print("fals2")
                 return False
-    print("true")
     return True
     
 # board = [[Cell(0) for i in range(4)] for j in range(4)]
@@ -157,14 +143,12 @@ with st.container():
     st.markdown('<div class="board-container"></div>', unsafe_allow_html=True)
 
 if st.session_state.gameover:
-    print("game over")
     game_over = st.sidebar.container(border=False)
     with game_over:
         st.markdown("<h1 style='text-align: center;'>Game Over</h1>", unsafe_allow_html=True)
         st.button("Try Again", on_click=reinitialize_board, use_container_width=True)
 
 if st.session_state.win:
-    print("win")
     win = st.sidebar.container(border=False)
     with win:
         st.markdown("<h1 style='text-align: center;'>You Won!!!</h1>", unsafe_allow_html=True)

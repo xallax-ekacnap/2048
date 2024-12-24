@@ -109,12 +109,14 @@ def decide_direction(name):
         st.session_state.board = move_board_down(st.session_state.board)
     
     # display(st.session_state.board)
-    st.session_state.board = add_new_value(st.session_state.board)
+    for i in range(st.session_state.new_value):
+        st.session_state.board = add_new_value(st.session_state.board)
     # display(st.session_state.board)
 
 def reinitialize_board():
     board = [[Cell(0) for i in range(st.session_state.edge)] for j in range(st.session_state.edge)]
-    board = add_new_value(board)
+    for i in range(st.session_state.new_value):
+        board = add_new_value(board)
     st.session_state.score = 0
     st.session_state.board = board
 
@@ -175,18 +177,16 @@ with st.sidebar:
     st.markdown(f"<h1 style='text-align: center;'>Score: {st.session_state.score}</h1>", unsafe_allow_html=True)
 
     st.number_input(label="Edge", key="edge", value=4, min_value=3, max_value=16, step=1, on_change=reinitialize_board)
+    st.number_input(label="New Values Each Move", key='new_value', value=st.session_state.edge // 4, min_value=1, max_value=st.session_state.edge**2)
+
+direction_dict = {'A': "←", 'D': "→", 'W': "↑", 'S': "↓"}
 
 for i, col in enumerate([col1, col2, col3, col4]):
     with col:
-        if st.button(label=arrows[i], key=names[i]):
+        if st.button(label=arrows[i] + "\t" + {direct: key for key, direct in direction_dict.items()}[arrows[i]], key=names[i]):
             decide_direction(names[i])
 
-add_keyboard_shortcuts({
-    'A': "←",
-    'D': "→",
-    'W': "↑",
-    'S': "↓"
-})
+add_keyboard_shortcuts(direction_dict)
 
 #colors in hex values on a gradient
 colors = {

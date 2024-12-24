@@ -12,8 +12,8 @@ def add_new_value(board, r=None):
             if item == 0:
                 spots.append((i, j))
     if len(spots) == 0:
-        if is_game_over():
-            game_over()
+        if is_game_over() and not st.session_state.gameover:
+            st.session_state.gameover = True
         return board
     index = random.choice(spots)
     if random.randint(0, 9) == 0:
@@ -70,6 +70,8 @@ def check_pair(a, b):
     if a == b and not a.combined and not b.combined and a != 0: #combining
         new_value = a * 2
         st.session_state.score += new_value
+        if new_value == 2048:
+            st.session_state.win = True
         return Cell(new_value, True), Cell(0) 
     if a == 0 and b != 0: #moving left
         return b, Cell(0)
@@ -114,6 +116,7 @@ def decide_direction(name):
     # display(st.session_state.board)
 
 def reinitialize_board():
+    st.session_state.gameover = False
     board = [[Cell(0) for i in range(st.session_state.edge)] for j in range(st.session_state.edge)]
     for i in range(st.session_state.new_value):
         board = add_new_value(board)
@@ -138,21 +141,12 @@ def is_game_over():
                 return False
     print("true")
     return True
-
-            
-
-def game_over():
-    print("game over")
-    game_over = st.sidebar.container(border=False)
-    with game_over:
-        st.markdown("<h1 style='text-align: center;'>Game Over</h1>", unsafe_allow_html=True)
-        st.button("Restart", on_click=reinitialize_board)
-    del game_over
-
-
-
+    
 # board = [[Cell(0) for i in range(4)] for j in range(4)]
-
+if "gameover" not in st.session_state:
+    st.session_state.gameover = False
+if "win" not in st.session_state:
+    st.session_state.win = False
 
 board_cont = st.container(border=False)
 
@@ -162,7 +156,19 @@ if "score" not in st.session_state:
 with st.container():
     st.markdown('<div class="board-container"></div>', unsafe_allow_html=True)
 
+if st.session_state.gameover:
+    print("game over")
+    game_over = st.sidebar.container(border=False)
+    with game_over:
+        st.markdown("<h1 style='text-align: center;'>Game Over</h1>", unsafe_allow_html=True)
+        st.button("Try Again", on_click=reinitialize_board, use_container_width=True)
 
+if st.session_state.win:
+    print("win")
+    win = st.sidebar.container(border=False)
+    with win:
+        st.markdown("<h1 style='text-align: center;'>You Won!!!</h1>", unsafe_allow_html=True)
+        st.button("Play Again", on_click=reinitialize_board, use_container_width=True)
 
 col1, col2, col3, col4 = st.columns(4)
 names = ['Left', 'Right','Up', 'Down']
@@ -177,14 +183,15 @@ with st.sidebar:
     st.markdown(f"<h1 style='text-align: center;'>Score: {st.session_state.score}</h1>", unsafe_allow_html=True)
 
     st.number_input(label="Edge", key="edge", value=4, min_value=3, max_value=16, step=1, on_change=reinitialize_board)
-    st.number_input(label="New Values Each Move", key='new_value', value=st.session_state.edge // 4, min_value=1, max_value=st.session_state.edge**2)
+    st.number_input(label="New Values Each Move", key='new_value', value=st.session_state.edge // 4 if st.session_state.edge // 4 >= 1 else 1, min_value=1, max_value=st.session_state.edge**2)
 
 direction_dict = {'A': "←", 'D': "→", 'W': "↑", 'S': "↓"}
 
 for i, col in enumerate([col1, col2, col3, col4]):
     with col:
         if st.button(label=arrows[i] + "\t" + {direct: key for key, direct in direction_dict.items()}[arrows[i]], key=names[i]):
-            decide_direction(names[i])
+            if not st.session_state.gameover and not st.session_state.win:
+                decide_direction(names[i])
 
 add_keyboard_shortcuts(direction_dict)
 
@@ -201,7 +208,7 @@ colors = {
     256: "#1b7990",# Sea green
     512: "#0e6f7e",# Forest green
     1024: "#066566",# Dark teal
-    2048: "#00514d" # Deep green
+    2048: "#FFD700" # Deep green
 }
 
 
